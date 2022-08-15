@@ -1,0 +1,227 @@
+version: '3.8'
+services:
+  kafka:
+    # NOTE: Please use the latest version here!
+    image: docker.redpanda.com/vectorized/redpanda:v22.1.4
+    container_name: kafka
+    restart: unless-stopped
+    command:
+    - redpanda
+    - start
+    - --smp
+    - '1'
+    - --reserve-memory
+    - 0M
+    - --overprovisioned
+    - --node-id
+    - '0'
+    - --kafka-addr
+    - PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:19092
+    - --advertise-kafka-addr
+    - PLAINTEXT://kafka:9092,OUTSIDE://localhost:19092
+    - --pandaproxy-addr
+    - PLAINTEXT://0.0.0.0:8082,OUTSIDE://0.0.0.0:28082
+    - --advertise-pandaproxy-addr
+    - PLAINTEXT://kafka:8082,OUTSIDE://localhost:28082
+    - --set redpanda.auto_create_topics_enabled=true
+    ports:
+    - 8081:8081
+    - 8082:8082
+    - 19092:19092
+    - 9092:9092
+    - 28082:28082
+    - 29092:29092
+  # zookeeper:
+  #   hostname: zookeeper
+  #   container_name: zookeeper
+  #   image: wurstmeister/zookeeper
+  #   ports:
+  #     - 2181:2181
+  #   volumes:
+  #     - zooconf:/opt/zookeeper-3.4.13/conf
+  #     - zoodata:/opt/zookeeper-3.4.13/data
+  # kafka:
+  #   container_name: kafka
+  #   image: wurstmeister/kafka
+  #   ports:
+  #     - 19092:19092
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - zookeeper
+  #   environment:
+  #     KAFKA_LISTENERS: PLAINTEXT://:9092,CONNECTIONS_FROM_HOST://:19092
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,CONNECTIONS_FROM_HOST://localhost:19092
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONNECTIONS_FROM_HOST:PLAINTEXT
+  #     KAFKA_ZOOKEEPER_CONNECT : "zookeeper:2181"
+  #   volumes:
+  #     - ./kafka-storage:/kafka
+  mongo:
+    container_name: mongodb
+    image: mongo:5.0.6-focal
+    ports:
+      - 27017:27017
+    user: mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodata:/data/db
+      - mongoconf:/data/configdb
+
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    volumes: 
+      - hadoop_namenode:/hadoop/dfs/namenode
+    environment:
+      - CLUSTER_NAME=test
+    env_file: ./hadoop.env
+    ports:
+      - 9870:9870
+      - 9000:9000
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode1
+    restart: always
+    volumes:
+      - ./datanode1:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode2
+    restart: always
+    volumes:
+      - ./datanode3:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+  datanode3:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode3
+    restart: always
+    volumes:
+      - ./datanode2:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864" # 
+    env_file:
+      - ./hadoop.env
+
+  nodemanager1:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager1
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode1:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+  nodemanager2:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager2
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode2:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+  nodemanager3:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager3
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode3:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: historyserver
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 resourcemanager:8088"
+    volumes:
+      - hadoop_historyserver:/hadoop/yarn/timeline
+    env_file:
+      - ./hadoop.env
+
+  # cloudera:
+  #   image: gethue/hue:20201001-135001
+   
+  #   container_name: hue
+  #   dns: 8.8.8.8
+  #   ports:
+  #    - 8888:8888
+  #   volumes:
+  #     - ./conf.dist:/usr/share/hue/desktop/conf
+  #   depends_on:
+  #     - namenode
+
+  spark-master:
+    image: spark-master:latest
+    container_name: spark-master
+    hostname: spark-master
+    ports:
+      - 8080:8080
+      - 7077:7077
+    environment:
+      - PYSPARK_PYTHON=/usr/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+    env_file:
+      - ./hadoop.env
+
+  spark-worker1:
+    image: spark-worker:latest
+    container_name: spark-worker1
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - PYSPARK_PYTHON=/usr/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+    ports:
+      - 8084:8081
+    env_file:
+      - ./hadoop.env
+
+  spark-worker2:
+    image: spark-worker:latest
+    container_name: spark-worker2
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - PYSPARK_PYTHON=/usr/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+    ports:
+      - 8083:8081
+    env_file:
+      - ./hadoop.env
+      
+  
+  
+
+volumes:
+  mongodata:
+    external: true
+  mongoconf:
+    external: true
+  zooconf:
+  zoodata:
+  hadoop_historyserver:
+  hadoop_datanode1:
+  hadoop_datanode2:
+  hadoop_datanode3:
+  hadoop_namenode:
+  postgres-db-volume:
+networks:
+  default:
+    name: infra
+    external: true

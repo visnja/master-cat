@@ -1,0 +1,12 @@
+infra/datanode1
+infra/datanode2
+infra/datanode3
+kafka-storage
+logs
+**/configs/*.json
+infra/dags/configs/*
+importer/crawler.json
+.env
+node_modules
+
+spark_env.tar.gz
