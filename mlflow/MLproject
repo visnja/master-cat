@@ -1,0 +1,7 @@
+name: train_example
+
+conda_env: environment.yaml
+
+entry_points:
+  main:
+    command: "python train.py"

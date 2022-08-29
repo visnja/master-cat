@@ -10,3 +10,10 @@ importer/crawler.json
 node_modules
 
 spark_env.tar.gz
+
+harbor-offline-installer-*
+
+harbor/*
+
+.metaflow
+mlruns

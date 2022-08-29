@@ -1,0 +1,103 @@
+version: '3'
+services:
+  postgres2:
+    container_name: postgres2
+    image: postgres:13
+    environment:
+      POSTGRES_USER: db
+      POSTGRES_PASSWORD: db
+      POSTGRES_DB: db
+    volumes:
+      - postgres-db-volume2:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "db" ]
+      interval: 5s
+      retries: 5
+    restart: always
+
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    expose:
+      - "9000"
+    ports:
+      - "9900:9000"
+      # MinIO Console is available at http://localhost:9001
+      - "9901:9001"
+    environment:
+      MINIO_ROOT_USER: "user"
+      MINIO_ROOT_PASSWORD: "password"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:9000/minio/health/live"
+        ]
+      interval: 1s
+      timeout: 10s
+      retries: 5
+    # Note there is no bucket by default
+    command: server /data --console-address ":9901"
+
+  minio-create-bucket:
+    container_name: create-bucket
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: >
+      bash -c " mc alias set minio http://minio:9900 user password && if ! mc ls minio | grep --quiet bucket; then
+        mc mb minio/bucket
+      else
+        echo 'bucket already exists'
+      fi "
+
+  artifacts-server:
+    container_name: artifacts-server
+    image: condaenv
+    depends_on:
+      - minio-create-bucket
+    restart: always
+    expose:
+      - "5500"
+    ports:
+      - "5500:5500"
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9900
+      AWS_ACCESS_KEY_ID: "user"
+      AWS_SECRET_ACCESS_KEY: "password"
+    command: >
+      mlflow server --host 0.0.0.0 --port 5500 --artifacts-destination s3://bucket --gunicorn-opts "--log-level debug" --serve-artifacts --artifacts-only
+
+  tracking-server:
+    container_name: tracking-server
+    image: condaenv
+    depends_on:
+      - postgres2
+      - artifacts-server
+    expose:
+      - "5000"
+    ports:
+      # MLflow UI is available at http://localhost:5000
+      - "5000:5000"
+    restart: always
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://db:db@postgres2:5432/db --default-artifact-root http://artifacts-server:5500/api/2.0/mlflow-artifacts/artifacts/experiments --gunicorn-opts "--log-level debug"
+
+  client:
+    image: condaenv
+    depends_on:
+      - tracking-server
+    environment:
+      MLFLOW_TRACKING_URI: http://tracking-server:5000
+
+volumes:
+  postgres-db-volume2:
+networks:
+  default:
+    name: infra
+    external: true

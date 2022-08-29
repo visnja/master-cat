@@ -16,7 +16,7 @@ clean: down clean_zookeeper
 
 
 up:
-	docker-compose -f docker-compose.yml up -d --remove-orphans
+	AIRFLOW_UID=1000 docker-compose  up -d 
 
 down:
-	docker-compose -f docker-compose.yml down
+	docker-compose down
