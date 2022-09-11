@@ -15,5 +15,8 @@ harbor-offline-installer-*
 
 harbor/*
 
+knowledge-base/*.pkl
 .metaflow
 mlruns
+
+__pycache__

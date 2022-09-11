@@ -6,9 +6,9 @@ from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 
 import re
 import nltk
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
+# nltk.download('stopwords')
+# nltk.download('wordnet')
+# nltk.download('omw-1.4')
 import contractions
 from nltk.corpus import stopwords
 stop_words = set(stopwords.words('english'))

@@ -1,0 +1,3 @@
+Flask==2.2.2
+spacy-dbpedia-spotlight==0.2.2
+spacy==3.2.1

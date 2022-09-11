@@ -1,4 +1,4 @@
-from metaflow import FlowSpec, step, IncludeFile, conda, conda_base
+from metaflow import FlowSpec, step, IncludeFile, conda, conda_base, schedule
 def get_python_version():
     """
     A convenience function to get the python version used to run this
@@ -23,6 +23,7 @@ def script_path(filename):
     filepath = os.path.join(os.path.dirname(__file__))
     return os.path.join(filepath, filename)
 
+@schedule(weekly=True)
 @conda_base(python=get_python_version(), libraries={"scikit-learn": "0.23.2"})
 class TrainModelFlow(FlowSpec):
 

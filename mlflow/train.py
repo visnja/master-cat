@@ -20,9 +20,6 @@ def save_text(path, text):
         f.write(text)
 
 
-#  NOTE: ensure the tracking server has been started with --serve-artifacts to enable
-#        MLflow artifact serving functionality.
-
 def fetch_articles():
     connection = MongoClient("mongodb://mongodb:27017/crawler.contents")
 
@@ -83,33 +80,21 @@ def train(df,classes):
     return best
 
 def main():
-    df, classes = fetch_articles()
-    df, classes = filter_classes(df, classes)
-    df = clean_text(df)
-    df = df.sample(4000)
-    best = train(df, classes)
-    mlflow.sklearn.log_model(best, "model")
-    print("Model saved in run %s" % mlflow.active_run().info.run_uuid)
-    # assert "MLFLOW_TRACKING_URI" in os.environ
-
-    # # Log artifacts
-    # run_id1 = log_artifacts()
-    # # Download artifacts
-    # client = MlflowClient()
-    # print("Downloading artifacts")
-    # pprint(os.listdir(client.download_artifacts(run_id1, "")))
-    # pprint(os.listdir(client.download_artifacts(run_id1, "dir")))
-
-    # # List artifacts
-    # print("Listing artifacts")
-    # pprint(client.list_artifacts(run_id1))
-    # pprint(client.list_artifacts(run_id1, "dir"))
-
-    # # Log artifacts again
-    # run_id2 = log_artifacts()
-    # # Delete the run to test `mlflow gc` command
-    # client.delete_run(run_id2)
-    # print(f"Deleted run: {run_id2}")
+    print( os.environ.get('MLFLOW_TRACKING_URI'))
+    mlflow.set_tracking_uri('http://tracking-server:5000')
+    print(mlflow.get_tracking_uri())
+    # experiment_id =  mlflow.get_experiment('training')
+    with mlflow.start_run():
+        mlflow.sklearn.autolog()
+        df, classes = fetch_articles()
+        df, classes = filter_classes(df, classes)
+        print('cleaning text')
+        df = clean_text(df)
+        df = df.sample(4000)
+        best = train(df, classes)
+        mlflow.sklearn.log_model(best, "model", code_paths=[os.getcwd() + "/utils.py"])
+        print("Model saved in run %s" % mlflow.active_run().info.run_uuid)
+        mlflow.end_run()
 
 
 if __name__ == "__main__":

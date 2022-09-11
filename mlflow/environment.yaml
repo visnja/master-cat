@@ -109,6 +109,7 @@ dependencies:
   - libgomp=9.3.0=h5101ec6_17
   - libnghttp2=1.46.0=hce63b2e_0
   - libpng=1.6.37=h21135ba_2
+  - libpq=12.9=hc2c5182_1
   - libprotobuf=3.19.1=h4ff587b_0
   - libsodium=1.0.18=h7b6447c_0
   - libssh2=1.9.0=h1ba5d50_1
@@ -159,6 +160,7 @@ dependencies:
   - prompt-toolkit=3.0.20=pyhd3eb1b0_0
   - protobuf=3.19.1=py37h295c915_0
   - psutil=5.7.2=py37h7b6447c_0
+  - psycopg2=2.8.6=py37h3c74f83_1
   - ptyprocess=0.7.0=pyhd3eb1b0_2
   - py-rouge=1.1=pyhd8ed1ab_0
   - py4j=0.10.7=py37_0
@@ -254,6 +256,7 @@ dependencies:
     - isort==5.10.1
     - itsdangerous==2.1.2
     - lazy-object-proxy==1.7.1
+    - loguru==0.6.0
     - mako==1.2.1
     - mccabe==0.7.0
     - metaflow==2.7.6
@@ -271,6 +274,7 @@ dependencies:
     - rouge==1.0.1
     - scikit-multilearn==0.2.0
     - smmap==5.0.0
+    - spacy-dbpedia-spotlight==0.2.2
     - sqlalchemy==1.4.40
     - sqlparse==0.4.2
     - tabulate==0.8.10
