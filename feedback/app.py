@@ -2,7 +2,12 @@ from flask import Flask, request, app
 import json
 import requests
 
+from pymongo import MongoClient
+import pandas as pd
 
+connection=MongoClient("mongodb://mongodb:27017/feedback")
+
+db=connection.get_database()
 
 app = Flask(__name__)
 
