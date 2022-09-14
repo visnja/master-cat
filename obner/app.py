@@ -30,7 +30,6 @@ def dict2df(results):
         df = pd.DataFrame(data)
         return df
     else:
-        print(results)
         return results['boolean']
 
 def dfResults(endpoint, prefix, q):
@@ -49,7 +48,7 @@ def printQuery(results, limit=''):
                 print('{0}: {1}'.format(ans, result[ans]['value']))
             print()
     else:
-        print(results)
+        print()
 
 def printRunQuery(endpoint, prefix, q, limit=''):
     ''' Print the results from the SPARQL query '''
@@ -64,6 +63,7 @@ prefix = '''
     PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX dbo: <http://dbpedia.org/ontology/>
+    PREFIX dbp: <http://dbpedia.org/property/>
     PREFIX dbc: <http://dbpedia.org/resource/Category:>
     PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
     
@@ -80,18 +80,15 @@ sparql = SPARQLWrapper(endpoint)
 
 app = Flask(__name__)
 
-label_dict = {
-    "USD":"http://dbpedia.org/resource/United_States_dollar",
-    
 
-}
 
 def direct_children(entity):
     q ='''
-        SELECT distinct ?o {{
+        SELECT ?code {{
 
             <{page}> dbo:wikiPageWikiLink ?o .
-            ?o rdf:type dbo:Currency 
+            ?o rdf:type dbo:Currency .
+            ?o dbp:isoCode ?code .
                 
         }}
         '''.format(page=entity)
@@ -100,21 +97,21 @@ def direct_children(entity):
 
 def children_with_grandchildren(entity):
     q ='''
-        SELECT distinct ?o {{
+        SELECT ?code, COUNT(?code) as ?count {{
 
-            <{page}> dbo:wikiPageWikiLink ?o .
-            ?o dbo:wikiPageWikiLink ?grandchild .
-            ?grandchild rdf:type dbo:Currency
+            <{page}> dbo:wikiPageWikiLink ?child .
+            ?child dbo:wikiPageWikiLink ?grandchild .
+            ?grandchild rdf:type dbo:Currency .
+            ?grandchild dbp:isoCode ?code .
+            FILTER NOT EXISTS {{ ?child rdf:type dbo:Currency . }}
                 
-        }}
+        }} GROUP BY ?code
         '''.format(page=entity)
     df = dfResults(endpoint, prefix, q)
     return df
 
-def graph_search(entity,i=1):
-
-    if i > 3:
-        return False
+def graph_search(entity):
+    labels = {}
 
     q ='''
     ASK {{
@@ -124,15 +121,29 @@ def graph_search(entity,i=1):
     }}
     '''.format(page=entity)
     isCurrency = dfResults(endpoint, prefix, q)
+    if isCurrency:
+        q ='''
+        SELECT ?code {{
+
+            <{page}> dbp:isoCode ?code .   
+            
+        }}
+        '''.format(page=entity)
+        code = dfResults(endpoint, prefix, q)
+        labels[code['code'][0]] = 100
+
 
     if not isCurrency:
         children = direct_children(entity)
         grandchildren = children_with_grandchildren(entity)
+        for idx,child in children.iterrows():
+            labels[child['code']] = 50
+        for idx,child in grandchildren.iterrows():
+            labels[child['code']] = child['count']
+
         
 
-    return isCurrency
-    
-
+    return labels
 
 
 
@@ -140,11 +151,15 @@ def graph_search(entity,i=1):
 def process():
     article = request.get_json()
     doc = nlp(article["text"])
-    currencies = 0
+    currencies = {}
     for ent in doc.ents:
 
-        if graph_search(ent.kb_id_):
-            currencies += 1
+        labels = graph_search(ent.kb_id_)
+        for key, value in labels.items():
+            if key in currencies:
+                currencies[key] += int(value)
+            else:
+                currencies[key] = int(value)
 
    
     res = {"status": currencies}

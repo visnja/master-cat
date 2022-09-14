@@ -1,0 +1,10 @@
+SELECT ?code, COUNT(?code){
+       <http://dbpedia.org/resource/Europe> dbo:wikiPageWikiLink  ?child .
+
+       ?child  dbo:wikiPageWikiLink ?grandchild .
+      
+       ?grandchild rdf:type dbo:Currency .
+       ?grandchild dbp:isoCode ?code .   
+
+    FILTER NOT EXISTS {?child rdf:type dbo:Currency . }
+} GROUP BY ?code
