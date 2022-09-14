@@ -1,0 +1,6 @@
+SELECT  distinct ?code {
+       <http://dbpedia.org/resource/Boris_Johnson> dbo:wikiPageWikiLink  ?child .
+       ?child  dbo:wikiPageWikiLink ?grandchild .
+       ?grandchild rdf:type dbo:Currency .
+       ?grandchild dbp:isoCode ?code .   
+}

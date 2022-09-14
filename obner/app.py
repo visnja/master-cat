@@ -81,7 +81,7 @@ sparql = SPARQLWrapper(endpoint)
 app = Flask(__name__)
 
 label_dict = {
-    "USD":"https://dbpedia.org/page/United_States_dollar",
+    "USD":"http://dbpedia.org/resource/United_States_dollar",
     
 
 }
