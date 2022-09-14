@@ -86,9 +86,32 @@ label_dict = {
 
 }
 
+def direct_children(entity):
+    q ='''
+        SELECT distinct ?o {{
+
+            <{page}> dbo:wikiPageWikiLink ?o .
+            ?o rdf:type dbo:Currency 
+                
+        }}
+        '''.format(page=entity)
+    df = dfResults(endpoint, prefix, q)
+    return df
+
+def children_with_grandchildren(entity):
+    q ='''
+        SELECT distinct ?o {{
+
+            <{page}> dbo:wikiPageWikiLink ?o .
+            ?o dbo:wikiPageWikiLink ?grandchild .
+            ?grandchild rdf:type dbo:Currency
+                
+        }}
+        '''.format(page=entity)
+    df = dfResults(endpoint, prefix, q)
+    return df
 
 def graph_search(entity,i=1):
-    # page = entity.replace("http://dbpedia.org/resource/","")
 
     if i > 3:
         return False
@@ -103,17 +126,9 @@ def graph_search(entity,i=1):
     isCurrency = dfResults(endpoint, prefix, q)
 
     if not isCurrency:
-        q ='''
-        SELECT ?o {{
-
-                <{page}> dbo:wikiPageWikiLink ?o    
-                
-        }}
-        '''.format(page=entity)
-        df = dfResults(endpoint, prefix, q)
-        if len(df)>0:
-            df['currency'] = df.apply(lambda x: graph_search(x['o'],i+1), axis=1 )
-        print(df.head())
+        children = direct_children(entity)
+        grandchildren = children_with_grandchildren(entity)
+        
 
     return isCurrency
     

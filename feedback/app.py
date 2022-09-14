@@ -47,6 +47,8 @@ def process():
         if label not in kb_labels:
             print("Knowledge base doesn't recognize any tokens related to this label. Either the knowledge base is poor or this label is wrong")
             penalty += 0.5
+
+    
         
     
    
