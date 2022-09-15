@@ -1,0 +1,27 @@
+version: '3'
+services:
+  obner:
+    image: obner:latest
+    container_name: obner
+    restart: unless-stopped
+    ports:
+      - 5001:5000
+  
+  knowledge-base:
+    image: knowledge-base:latest
+    container_name: knowledge-base
+    restart: unless-stopped
+    ports:
+      - 5003:5000
+  feedback:
+    image: feedback:latest
+    container_name: feedback
+    restart: unless-stopped
+    ports:
+      - 5002:5000
+    
+
+networks:
+  default:
+    name: infra
+    external: true
