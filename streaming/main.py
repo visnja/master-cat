@@ -1,6 +1,6 @@
 import os
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import udf, col
+from pyspark.sql.functions import *
 # import preprocess
 from pyspark.sql.types import ArrayType, StringType
 
@@ -23,6 +23,13 @@ def f(body):
 
 
 if __name__=='__main__':
+
+    import nltk
+
+    nltk.download('stopwords')
+    from nltk.corpus import stopwords
+    stop_words = stopwords.words("english")
+
     spark = SparkSession \
     .builder \
     .appName("streaming") \
@@ -39,15 +46,20 @@ if __name__=='__main__':
     .option("subscribe", "tweets") \
     .load()
 
-    # df = spark.read.parquet("hdfs://namenode:9000//user/root/crawler.parquet")
-    # df = df.drop("contentType","visited", "date", "icon","created_at")
+    words = news.select(
+        explode(
+            split(news.value, " ")
+        ).alias("word"),
+        news.timestamp
+    ).filter(~lower(col("word")).isin(stop_words))
 
-    # df.printSchema()
+    word_count = words.groupBy(window(words.timestamp,"1 day"), "word")\
+        .count().orderBy(desc("count")).limit(10).orderBy("window")
+    query = word_count \
+    .writeStream \
+    .outputMode("complete") \
+    .format("console") \
+    .option("truncate", "false") \
+    .start()
 
-    # df.createOrReplaceTempView("ParquetTable")
-
-    # sql = spark.sql("select _id, body from ParquetTable").show()
-
-    # print('Trying foreach')
-   
-    # df.withColumn("body",f(col("body"))).show()
+    query.awaitTermination()

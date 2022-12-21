@@ -3,5 +3,5 @@ build:
 .PHONY: build
 
 run:
-	docker run -v '${PWD}/configs':/configs --net infra_default --rm crawler
+	docker run -v '${PWD}/configs':/configs --net infra --rm crawler
 .PHONY: run 

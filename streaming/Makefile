@@ -1,7 +1,7 @@
 
 
 build:
-	docker build -t streaming .
+	docker build -t streaming -f Dockerfile.spark .
 
 
 run:
