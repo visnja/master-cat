@@ -53,3 +53,23 @@ crawl-local:
 	cd scrapper && sh start.sh
 .PHONY: crawl-local
 
+metabase:
+	cd metabase && UID=$$UID GID=$$GID docker-compose up -d
+.PHONY: metabase
+
+preprocess:
+	cd preprocessing && make run
+.PHONY: preprocess
+
+preprocess-logs:
+	cd preprocessing && make logs
+.PHONY: preprocess-logs
+
+urls:
+	@echo 'metabase http://localhost:3000'
+	@echo 'hive http://localhost:8888'
+	@echo 'spark-master http://localhost:8080'
+	@echo 'airflow http://localhost:8085'
+	@echo 'mlflow http://localhost:5000'
+	@echo 'hadoop http://localhost:9870'
+.PHONY: urls

@@ -19,4 +19,6 @@ knowledge-base/*.pkl
 .metaflow
 mlruns
 
+metabase/data
+
 **/__pycache__/**
