@@ -20,3 +20,12 @@ up:
 
 down:
 	docker-compose down
+
+
+ui:
+	open http://localhost:8085
+.PHONY: ui
+
+hive:
+	docker-compose -f hive.yml  up -d
+.PHONY: hive

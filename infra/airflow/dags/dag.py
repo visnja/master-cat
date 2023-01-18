@@ -29,48 +29,52 @@ with DAG(
     t2 = BashOperator(
             task_id='docker',
             depends_on_past=False,
-            bash_command="docker ps ",
+            bash_command="docker stop reuters cnbc dailyfx marketwatch marketpulse investing fxstreet forexcrunch fxempire forex || true",
         )
 
     t3 = DockerOperator(
             task_id='reuters',
             depends_on_past=False,
             image='crawler',
+            container_name='reuters',
             command='configs/reuters.json',
             auto_remove=True,
             mount_tmp_dir=False,
-            mounts=[Mount(source="/home/visnja/Desktop/faks/infra/dags/configs", target="/configs", type="bind")],
-            network_mode="infra_default",
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
     )
     t4 = DockerOperator(
             task_id='cnbc',
             depends_on_past=False,
             image='crawler',
+            container_name='cnbc',
             command='configs/cnbc.json',
             auto_remove=True,
             mount_tmp_dir=False,
-            mounts=[Mount(source="/home/visnja/Desktop/faks/infra/dags/configs", target="/configs", type="bind")],
-            network_mode="infra_default",
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
     )
     t5 = DockerOperator(
             task_id='dailyfx',
             depends_on_past=False,
             image='crawler',
+            container_name='dailyfx',
             command='configs/dailyfx.json',
             auto_remove=True,
             mount_tmp_dir=False,
-            mounts=[Mount(source="/home/visnja/Desktop/faks/infra/dags/configs", target="/configs", type="bind")],
-            network_mode="infra_default",
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
     )
     t6 = DockerOperator(
             task_id='marketwatch',
             depends_on_past=False,
             image='crawler',
+            container_name='marketwatch',
             command='configs/marketwatch.json',
             auto_remove=True,
             mount_tmp_dir=False,
-            mounts=[Mount(source="/home/visnja/Desktop/faks/infra/dags/configs", target="/configs", type="bind")],
-            network_mode="infra_default",
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
 
     )
 
@@ -78,20 +82,66 @@ with DAG(
             task_id='marketpulse',
             depends_on_past=False,
             image='crawler',
+            container_name='marketpulse',
             command='configs/marketpulse.json',
             auto_remove=True,
             mount_tmp_dir=False,
-            mounts=[Mount(source="/home/visnja/Desktop/faks/infra/dags/configs", target="/configs", type="bind")],
-            network_mode="infra_default",
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
     )
     t8 = DockerOperator(
             task_id='investing',
             depends_on_past=False,
             image='crawler',
+            container_name='investing',
             command='configs/investing.json',
             auto_remove=True,
             mount_tmp_dir=False,
-            mounts=[Mount(source="/home/visnja/Desktop/faks/infra/dags/configs", target="/configs", type="bind")],
-            network_mode="infra_default",
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
     )
-    t1 >> t2 
+    t9 = DockerOperator(
+            task_id='fxstreet',
+            depends_on_past=False,
+            image='crawler',
+            container_name='fxstreet',
+            command='configs/fxstreet.json',
+            auto_remove=True,
+            mount_tmp_dir=False,
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
+    )
+    t10 = DockerOperator(
+            task_id='forexcrunch',
+            depends_on_past=False,
+            image='crawler',
+            container_name='forexcrunch',
+            command='configs/forexcrunch.json',
+            auto_remove=True,
+            mount_tmp_dir=False,
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
+    )
+    t11 = DockerOperator(
+            task_id='fxempire',
+            depends_on_past=False,
+            image='crawler',
+            container_name='fxempire',
+            command='configs/fxempire.json',
+            auto_remove=True,
+            mount_tmp_dir=False,
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
+    )
+    t12 = DockerOperator(
+            task_id='forex',
+            depends_on_past=False,
+            image='crawler',
+            container_name='forex',
+            command='configs/forex.json',
+            auto_remove=True,
+            mount_tmp_dir=False,
+            mounts=[Mount(source="/home/visnja/Desktop/faks/master-cat/infra/airflow/dags/configs", target="/configs", type="bind")],
+            network_mode="infra",
+    )
+    t1 >> t2 >> [t3, t4, t5, t6, t7, t8, t9, t10, t11, t12 ] 

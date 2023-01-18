@@ -43,7 +43,7 @@ if __name__=='__main__':
     .readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "kafka:9092") \
-    .option("subscribe", "tweets") \
+    .option("subscribe", "test-topic") \
     .load()
 
     words = news.select(
