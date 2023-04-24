@@ -57,6 +57,10 @@ metabase:
 	cd metabase && UID=$$UID GID=$$GID docker-compose up -d
 .PHONY: metabase
 
+stop-metabase:
+	cd metabase && UID=$$UID GID=$$GID docker-compose down
+.PHONY: stop-metabase
+
 preprocess:
 	cd preprocessing && make run
 .PHONY: preprocess
