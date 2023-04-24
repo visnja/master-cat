@@ -1,23 +1,24 @@
-FROM ubuntu:bionic
+FROM spark-base:latest
 
-RUN apt-get upgrade && apt-get update && \
- DEBIAN_FRONTENT=noninteractive apt-get -y install wget make default-jre-headless zlib1g-dev gcc libssl-dev bzip2 libffi-dev && apt-get clean && \
- rm -rf /var/lib/apt/lists/*
-RUN wget https://www.python.org/ftp/python/3.7.12/Python-3.7.12.tgz && \
- mv Python-3.7.12.tgz /opt/ && cd /opt/ && tar xzf Python-3.7.12.tgz && \
- rm -f /opt/Python-3.7.12.tgz && cd Python-3.7.12 && \
-  ./configure --enable-optimisations && make install
 
-RUN python3.7 -V
-RUN ln -s /usr/local/bin/python3.7 /usr/bin/python3
-RUN ln -s /usr/local/bin/pip3.7 /usr/bin/pip3
-COPY requirements.txt .
+COPY template.sh /
 
-RUN pip3 install -r requirements.txt
 
-ENV MONGO_URL "mongodb://mongodb:27017/crawler.contents"
-ENV PYSPARK_PYTHON python3
+ENV SPARK_MASTER_NAME spark-master
+ENV SPARK_MASTER_PORT 7077
+# Copy the requirements.txt first, for separate dependency resolving and downloading
+COPY requirements.txt /app/
+RUN cd /app \
+      && pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt
 
-COPY *.py ./
+# Copy the source code
 
-CMD ["python3","main.py"]
+
+COPY spark_env.tar.gz /app/
+
+COPY newsubmit.sh /submit.sh
+
+COPY main.py /app/app.py
+
+ENV SPARK_APPLICATION_PYTHON_LOCATION /app/app.py
+CMD ["/bin/bash", "/template.sh"]

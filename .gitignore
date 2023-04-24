@@ -22,3 +22,6 @@ mlruns
 metabase/data
 
 **/__pycache__/**
+
+master.cat.crt
+master.cat.key

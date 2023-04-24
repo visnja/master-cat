@@ -168,12 +168,12 @@ services:
       - 8083:8081
     env_file:
       - ./hadoop.env
-  model-serve:
-    image: serve_model:latest
-    container_name: model
-    restart: unless-stopped
-    ports:
-      - 8087:8000
+  # model-serve:
+  #   image: serve_model:latest
+  #   container_name: model
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8087:8000
 volumes:
   mongodata:
     external: true

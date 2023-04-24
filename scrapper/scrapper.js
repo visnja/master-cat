@@ -2,6 +2,7 @@ const kafka = require('./kafka').kafka
 
 const util = require('./utils');
 const fs = require('fs');
+
 const config = async (src) => {
   let base = src.replace(".com",".json")
   let path = "configs/" + base

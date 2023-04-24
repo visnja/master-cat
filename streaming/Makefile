@@ -1,11 +1,11 @@
 
 
 build:
-	docker build -t streaming -f Dockerfile.spark .
+	docker build -t streaming .
 .PHONY: build
 
 
 run:
-	docker run --net infra streaming
+	docker run --net infra --rm --name streaming streaming
 .PHONY: run
 
